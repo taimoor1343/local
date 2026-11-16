@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Project Inquiry Form</title>
+  <title>Project Inquiry Form with reCAPTCHA</title>
   <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Google reCAPTCHA v2 Script -->
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <style>
     * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
     body {
@@ -116,7 +118,7 @@
     <p>Fill out your details below and our team will get back to you shortly.</p>
 
     <form id="contactForm" class="row g-3">
-      <!-- Row 1: Full Name & Email (Required) -->
+      <!-- Row 1: Full Name & Email -->
       <div class="col-md-6">
         <label for="inputName" class="form-label">Full Name *</label>
         <input type="text" class="form-control" id="inputName" name="name" placeholder="e.g. Alice Johnson" required>
@@ -126,7 +128,7 @@
         <input type="email" class="form-control" id="inputEmail" name="email" placeholder="e.g. alice@company.com" required>
       </div>
 
-      <!-- Row 2: Phone & Service Dropdown (Required) -->
+      <!-- Row 2: Phone & Service Dropdown -->
       <div class="col-md-6">
         <label for="inputPhone" class="form-label">Phone Number *</label>
         <input type="tel" class="form-control" id="inputPhone" name="phone" placeholder="+1 (555) 234-5678" required>
@@ -143,13 +145,13 @@
         </select>
       </div>
 
-      <!-- Row 3: Street Address (Optional) -->
+      <!-- Row 3: Street Address -->
       <div class="col-12">
         <label for="inputAddress" class="form-label">Street Address</label>
         <input type="text" class="form-control" id="inputAddress" name="address" placeholder="1234 Main St, Suite 100">
       </div>
 
-      <!-- Row 4: City, State/Province, Postal Code (Optional) -->
+      <!-- Row 4: City, State/Province, Zip -->
       <div class="col-md-6">
         <label for="inputCity" class="form-label">City</label>
         <input type="text" class="form-control" id="inputCity" name="city" placeholder="e.g. Lahore">
@@ -171,7 +173,7 @@
         <input type="text" class="form-control" id="inputZip" name="zip" placeholder="54000">
       </div>
 
-      <!-- Row 5: Message / Project Details (Required) -->
+      <!-- Row 5: Message / Project Details -->
       <div class="col-12">
         <label for="inputMessage" class="form-label">Project Details / Message *</label>
         <textarea class="form-control" id="inputMessage" name="message" rows="3" placeholder="Tell us a bit about your timeline, goals, or requirements..." required></textarea>
@@ -187,7 +189,12 @@
         </div>
       </div>
 
-      <!-- Row 7: Submit Button -->
+      <!-- Row 7: reCAPTCHA v2 Widget (Placed right before the submit button) -->
+      <div class="col-12 d-flex justify-content-center my-2">
+        <div class="g-recaptcha" data-sitekey="6LcCUCMuAAAAACFFnMKMruznthEEah6g9gdoX_8u"></div>
+      </div>
+
+      <!-- Row 8: Submit Button -->
       <div class="col-12">
         <button type="submit" id="submitBtn" class="submit-btn">
           <span id="btnText">Submit</span>
@@ -207,6 +214,13 @@
       e.preventDefault();
       if (submitBtn.classList.contains('is-submitted')) return;
 
+      // Verify reCAPTCHA token is generated on frontend
+      const recaptchaResponse = grecaptcha.getResponse();
+      if (!recaptchaResponse) {
+        statusMsg.textContent = 'Please complete the reCAPTCHA verification.';
+        return;
+      }
+
       statusMsg.textContent = '';
       submitBtn.disabled = true;
       btnText.textContent = 'Sending...';
@@ -225,6 +239,7 @@
           submitBtn.classList.add('is-submitted');
           btnText.textContent = 'Submitted';
           form.reset();
+          grecaptcha.reset(); // Reset captcha widget
         } else {
           throw new Error(result.message || 'Failed to send email.');
         }
@@ -232,6 +247,7 @@
         submitBtn.disabled = false;
         btnText.textContent = 'Submit';
         statusMsg.textContent = err.message;
+        grecaptcha.reset(); // Reset captcha on failure
       }
     });
   </script>
